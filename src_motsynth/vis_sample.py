@@ -11,7 +11,10 @@ from cv2 import (CAP_PROP_FOURCC, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT,
 from const.colors import get_random_colors
 COLORS = get_random_colors()
 
-from tools.visualize import (draw_box, draw_text, create_blk_board)
+from tools.visual_utils import (draw_box, draw_text, draw_boxes,
+                             create_blk_board)
+
+from dataset import BoxDataLoader
 
 def gen_dir(folder):
     if not os.path.exists(folder):
@@ -36,11 +39,13 @@ DATA_DIR = '/media/workspace/yirui/data/tracking_reid/prepared/MOTSynth/'
 
 def main():
 
-    for seq_id in [0, 1, 3, 4, 5, 6]:
+    # for seq_id in [0, 1, 3, 4, 5, 6]:
+    for seq_id in [1]:
         # seq_id   = 13
-        img_dir  = DATA_DIR + '/MOTSynth_train/frames/{:03d}'.format(seq_id)
-        vid_file = DATA_DIR + '/MOTSynth_1/{:03d}.mp4'.format(seq_id)
-        gt_file  = DATA_DIR + '/annotations/{:03d}.json'.format(seq_id)
+        img_dir       = DATA_DIR + '/MOTSynth_train/frames/{:03d}'.format(seq_id)
+        vid_file      = DATA_DIR + '/MOTSynth_1/{:03d}.mp4'.format(seq_id)
+        gt_file       = DATA_DIR + '/annotations/{:03d}.json'.format(seq_id)
+        gt_txt        = DATA_DIR + '/mot_annotations/{:03d}/gt/gt.txt'.format(seq_id)
         seq_info_file = DATA_DIR + '/mot_annotations/{:03d}/seqinfo.ini'.format(seq_id)
 
         gts      = load_gt(gt_file)
@@ -48,13 +53,13 @@ def main():
         print(cam_info)
 
         in_video   = cv2.VideoCapture(vid_file)
-        img_w      = int(in_video.get(CAP_PROP_FRAME_WIDTH))
-        img_h      = int(in_video.get(CAP_PROP_FRAME_HEIGHT))
+        w_img      = int(in_video.get(CAP_PROP_FRAME_WIDTH))
+        h_img      = int(in_video.get(CAP_PROP_FRAME_HEIGHT))
         fps        = in_video.get(CAP_PROP_FPS)
         num_frames = int(in_video.get(CAP_PROP_FRAME_COUNT))
         
         down_fact    = 4
-        w_out, h_out = img_w // down_fact, img_h // down_fact 
+        w_out, h_out = w_img // down_fact, h_img // down_fact 
         res_dir    = os.path.abspath('../results/motsynth')
         gen_dir(res_dir)
         out_video  = cv2.VideoWriter(
@@ -64,10 +69,23 @@ def main():
         # load seq info
         seq_info = load_seq_info(seq_info_file)
 
+        # load boxes
+        boxloader    = BoxDataLoader(track_file  = gt_txt,
+                                     img_size    = (w_img, h_img),
+                                     window      = fps * 2,
+                                     stride      = fps // 2,
+                                     height_dif_thresh  = 3,
+                                     front_ratio_thresh = 0.8,
+                                     fps         = fps)
+        
+        boxes = boxloader.raw_tracks.copy()
+        print(boxes.shape)
+
         # stop_frame_id = 10
         for i in range(num_frames):
             ret, frame = in_video.read()
-            if not ret: continue
+            if not ret or i >= boxes.shape[1]: continue
+            # if i >= stop_frame_id: break
 
             board      = create_blk_board(h_out * 3 // 2 , h_out)
             img_info   = gts['images'][i]
@@ -81,8 +99,16 @@ def main():
             draw_text(board, f'cx:{seq_info["cx"]}, cy:{seq_info["cy"]}', (5, 120), (0, 0, 255), scale = 0.5, thickness = 1)
 
             d_frame    = cv2.resize(frame, (w_out, h_out))
+
+            frame_boxes = boxes[:, i, :]
+            box_mask    = frame_boxes[:, -1] > 0
+            frame_boxes = frame_boxes[box_mask, :] / down_fact
+            draw_boxes(d_frame, frame_boxes, (0, 255, 0), thickness = 1)
+
             draw_board = cv2.hconcat([d_frame, board])
             out_video.write(draw_board)
+
+            if i == 0: cv2.imwrite(res_dir + '/{:03d}_cam_motion-frame-0.png'.format(seq_id), draw_board)
 
 if __name__ == '__main__':
     main()

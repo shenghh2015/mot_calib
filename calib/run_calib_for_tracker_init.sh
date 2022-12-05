@@ -1,0 +1,14 @@
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-01-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-02-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-03-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-04-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-05-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-06-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-07-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-08-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-09-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-10-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-11-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-12-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-13-FRCNN --time_window 3
+# python calib_for_tracker_init.py --dataset_name mot --seq_name MOT17-14-FRCNN --time_window 3
